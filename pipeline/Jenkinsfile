@@ -8,7 +8,7 @@ pipeline {
         awsAccountId = 383468065570
         MY_CREDENTIALS = credentials('aws-credentials')
         USERNAME = 'Tuyetnhung'
-        PASSWORD = 'Tuyetnhi@2019'
+        PASSWORD = 'Lamtuyetnhi@2019'
     }
         stages {
         stage('Example') {
