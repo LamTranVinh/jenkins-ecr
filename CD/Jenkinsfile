@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+    
+    environment {
+        AWS_DEFAULT_REGION = 'your-aws-region'
+        ECR_REPO_NAME = 'your-ecr-repo-name'
+        DOCKER_IMAGE_NAME = 'your-docker-image-name'
+        SONARQUBE_URL = 'http://sonarqube-server'
+        KUBE_CONFIG = credentials('kubernetes-config')
+    }
+
+    stages {
+        stage('Pull Image from ECR') {
+            steps {
+                script {
+                    def awsAccountId = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+                    def ecrLogin = sh(script: "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", returnStatus: true)
+                    
+                    if (ecrLogin == 0) {
+                        sh "docker pull ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${DOCKER_IMAGE_NAME}"
+                    } else {
+                        error "Failed to authenticate with ECR"
+                    }
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQube') {
+                        sh "mvn sonar:sonar -Dsonar.host.url=${SONARQUBE_URL}"
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    def kubeconfig = readFile(KUBE_CONFIG)
+                    sh "echo '${kubeconfig}' > kubeconfig.yaml"
+                    
+                    sh 'kubectl apply -f deployment.yaml --kubeconfig kubeconfig.yaml'
+                }
+            }
+        }
+        
+        stage('Monitoring with Dynatrace') {
+            steps {
+                script {
+                    // Add Dynatrace monitoring steps here
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                // Clean up Docker images, containers, or any other resources as needed
+                sh 'docker rmi "${DOCKER_IMAGE_NAME}"'
+                sh 'rm -f kubeconfig.yaml'
+            }
+        }
+    }
+}
