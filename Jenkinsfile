@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         AWS_DEFAULT_REGION = 'ap-northeast-2'
-        ECR_REPO_NAME = 'repo/jenkins'
+        ECR_REPO_NAME = 'repo-jenkins'
         DOCKER_IMAGE_NAME = 'vinh'
     }
     
