@@ -5,7 +5,7 @@ pipeline {
         AWS_DEFAULT_REGION = 'ap-northeast-2'
         ECR_REPO_NAME = 'repo-jenkins'
         DOCKER_IMAGE_NAME = "busybox"
-        // awsAccountId = 383468065570.dkr.ecr.ap-northeast-2
+        awsAccountId = 383468065570
     }
     
     stages {
@@ -24,14 +24,14 @@ pipeline {
         }
         
 
-    stage('Push to ECR') {
+stage('Push to ECR') {
     steps {
         script {
-            def awsAccountId = sh(script: '#!/bin/bash\nAWS_DEFAULT_REGION=your-aws-region aws 383468065570.dkr.ecr.ap-northeast-2 --query Account --output text', returnStdout: true).trim()
-            def ecrLogin = sh(script: "#!/bin/bash\nAWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", returnStatus: true)
+            def awsAccountId = sh(script: 'AWS_DEFAULT_REGION=your-aws-region aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+            def ecrLogin = sh(script: "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", returnStatus: true)
 
             if (ecrLogin == 0) {
-                docker.withRegistry("https://${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", '#!/bin/bash\naws-credentials') {
+                docker.withRegistry("https://${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", 'ecr-credentials') {
                     dockerImage.push("${env.BUILD_NUMBER}")
                 }
             } else {
@@ -40,6 +40,7 @@ pipeline {
         }
     }
 }
+
 
     
     // post {
