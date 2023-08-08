@@ -40,11 +40,11 @@ pipeline {
         }
     }
     
-    post {
-        always {
-            script {
-                // Clean up Docker images, containers, or any other resources as needed
-            }
-        }
-    }
+    // post {
+    //     always {
+    //         script {
+    //             // Clean up Docker images, containers, or any other resources as needed
+    //         }
+    //     }
+    // }
 }
