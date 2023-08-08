@@ -27,16 +27,9 @@ pipeline {
                 script {
                     def awsAccountId = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
                     def ecrLogin = sh(script: "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", returnStatus: true)
-
-                    if (ecrLogin == 0) {
-                        docker.withRegistry("https://${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", 'aws-credentials') {
-                            dockerImage.push("${env.BUILD_NUMBER}")
-                        }
-                    } else {
-                        error "Failed to authenticate with ECR"
+                    dockerImage.push("${env.BUILD_NUMBER}")
                     }
                 }
             }
         }
     }
-}
