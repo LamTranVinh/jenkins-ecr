@@ -25,7 +25,7 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 script {
-                    def awsAccountId = sh(script: '#!/bin/bash\naws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+                    def awsAccountId = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
                     def ecrLogin = sh(script: "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", returnStatus: true)
 
                     if (ecrLogin == 0) {
