@@ -2,25 +2,12 @@ pipeline {
     agent any
     
     environment {
-        AWS_DEFAULT_REGION = 'ap-northeast-2'
+        AWS_DEFAULT_REGION = 'ap-norteast-2'
         ECR_REPO_NAME = 'repo-jenkins'
-        DOCKER_IMAGE_NAME = "busybox"
-        awsAccountId = 383468065570
-        MY_CREDENTIALS = credentials('aws-credentials')
-        USERNAME = 'Tuyetnhung'
-        PASSWORD = 'Lamtuyetnhi@2019'
+        DOCKER_IMAGE_NAME = 'vinh'
     }
-        stages {
-        stage('Example') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh '''
-                    echo "Username: $USERNAME"
-                    echo "Password: $PASSWORD"
-                    '''
-                }
-            }
-        }
+    
+    stages {
         stage('Checkout') {
             steps {
                 checkout scm
@@ -35,21 +22,30 @@ pipeline {
             }
         }
         
+        stage('Push to ECR') {
+            steps {
+                script {
+                    def awsAccountId = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+                    def ecrLogin = sh(script: "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", returnStatus: true)
 
-stage('Push to ECR') {
-    steps {
-        script {
-            // def awsAccountId = sh(script: 'AWS_DEFAULT_REGION=ap-northeast-2 aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
-            def ecrLogin = sh(script: "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", returnStatus: true)
-            if (ecrLogin == 0) {
-                docker.withRegistry("https://${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", 'aws-credentials') {
-                    dockerImage.push("${env.BUILD_NUMBER}")
+                    if (ecrLogin == 0) {
+                        docker.withRegistry("https://${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", 'aws-credentials') {
+                            dockerImage.push("${env.BUILD_NUMBER}")
+                        }
+                    } else {
+                        error "Failed to authenticate with ECR"
+                    }
                 }
-            } else {
-                error "Failed to authenticate with ECR"
             }
         }
     }
-}
-}
+    
+    post {
+        always {
+            script {
+                // Clean up Docker images, containers, or any other resources as needed
+                sh 'docker rmi "${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"'
+            }
+        }
+    }
 }
