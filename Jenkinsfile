@@ -19,7 +19,8 @@ pipeline {
             }
         stage('Test'){
             steps {
-                 echo 'Empty'
+                echo 'Empty'
+                sh 'printenv'
             }
         }
         stage('Deploy') {
