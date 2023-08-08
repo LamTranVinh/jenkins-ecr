@@ -6,9 +6,24 @@ pipeline {
         ECR_REPO_NAME = 'repo-jenkins'
         DOCKER_IMAGE_NAME = "busybox"
         awsAccountId = 383468065570
+       API_CREDENTIALS = credentials('aws-credentals')
+        USERNAME = 'Tuyetnhung'
+        PASSWORD = 'Tuyetnhi@2019'
     }
     
     stages {
+        stages {
+        stage('Example') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'aws-credentals', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    sh '''
+                    echo "Username: $USERNAME"
+                    echo "Password: $PASSWORD"
+                    '''
+                }
+            }
+        }
+    }
         stage('Checkout') {
             steps {
                 checkout scm
