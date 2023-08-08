@@ -21,7 +21,6 @@ pipeline {
             steps {
                 echo 'Empty'
                 sh 'printenv'
-                sh 'find . -name \*.sh -print'
             }
         }
         stage('Deploy') {
