@@ -41,14 +41,13 @@ stage('Push to ECR') {
         script {
             // def awsAccountId = sh(script: 'AWS_DEFAULT_REGION=ap-northeast-2 aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
             def ecrLogin = sh(script: "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", returnStatus: true)
-            docker push 383468065570.dkr.ecr.ap-northeast-2.amazonaws.com/repo-jenkins:latest
-            // if (ecrLogin == 0) {
-            //     docker.withRegistry("https://${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", 'aws-credentials') {
-            //         dockerImage.push("${env.BUILD_NUMBER}")
-            //     }
-            // } else {
-            //     error "Failed to authenticate with ECR"
-            // }
+            if (ecrLogin == 0) {
+                docker.withRegistry("https://${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", 'aws-credentials') {
+                    dockerImage.push("${env.BUILD_NUMBER}")
+                }
+            } else {
+                error "Failed to authenticate with ECR"
+            }
         }
     }
 }
