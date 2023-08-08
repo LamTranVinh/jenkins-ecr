@@ -10,8 +10,6 @@ pipeline {
         USERNAME = 'Tuyetnhung'
         PASSWORD = 'Tuyetnhi@2019'
     }
-    
-    stages {
         stages {
         stage('Example') {
             steps {
@@ -54,15 +52,5 @@ stage('Push to ECR') {
         }
     }
 }
-
-
-    
-    // post {
-    //     always {
-    //         script {
-    //             // Clean up Docker images, containers, or any other resources as needed
-    //         }
-    //     }
-    // }
 }
 }
