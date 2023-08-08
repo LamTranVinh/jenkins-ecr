@@ -39,13 +39,4 @@ pipeline {
             }
         }
     }
-    
-    post {
-        always {
-            script {
-                // Clean up Docker images, containers, or any other resources as needed
-                sh 'docker rmi "${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"'
-            }
-        }
-    }
 }
