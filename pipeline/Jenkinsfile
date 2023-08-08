@@ -1,37 +1,49 @@
 pipeline {
-    agent { dockerfile true }
-    options {
-        skipStagesAfterUnstable()
+    agent any
+    
+    environment {
+        AWS_DEFAULT_REGION = 'ap-northeast-2'
+        ECR_REPO_NAME = 'repo-jenkins'
+        DOCKER_IMAGE_NAME = "busybox"
     }
+    
     stages {
-         stage('Clone repository') { 
-            steps { 
-                script{
+        stage('Checkout') {
+            steps {
                 checkout scm
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def dockerImage = docker.build("${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}")
                 }
             }
         }
-
-        stage('Build') { 
-           steps {
-                script{
-                 app = docker.build("underwater")
-                }
-            }
-        }
-        stage('Test'){
+        
+        stage('Push to ECR') {
             steps {
-                 echo 'Empty'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                script{
-                        docker.withRegistry('https://383468065570.dkr.ecr.ap-northeast-2.amazonaws.com', 'ap-northeast-2:aws-credentials') {
-                    app.push("${env.BUILD_NUMBER}")
-                    app.push("latest")
+                script {
+                    def awsAccountId = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+                    def ecrLogin = sh(script: "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", returnStatus: true)
+                    
+                    if (ecrLogin == 0) {
+                        docker.withRegistry("https://${awsAccountId}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com", 'ecr-credentials') {
+                            dockerImage.push("${env.BUILD_NUMBER}")
+                        }
+                    } else {
+                        error "Failed to authenticate with ECR"
                     }
                 }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                // Clean up Docker images, containers, or any other resources as needed
             }
         }
     }
