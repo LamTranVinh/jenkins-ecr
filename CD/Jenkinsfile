@@ -5,7 +5,7 @@ pipeline {
         AWS_DEFAULT_REGION = 'ap-northeast-2'
         ECR_REPO_NAME = 'repo-jenkins'
         DOCKER_IMAGE_NAME = '8'
-        // SONARQUBE_URL = 'http://sonarqube-server'
+        SONARQUBE_URL = 'http://sonarqube-server'
         // KUBE_CONFIG = credentials('kubernetes-config')
     }
 
