@@ -11,27 +11,28 @@ pipeline {
                 }
             }
         }
+
         stage('Build') { 
             steps { 
-                sh 'printenv'
-                sh 'docker build -t repo-jenkins .'
+                script{
+                 app = docker.build("underwater")
                 }
             }
+        }
         stage('Test'){
             steps {
-                echo 'Empty'
-                sh 'printenv'
+                 echo 'Empty'
             }
         }
         stage('Deploy') {
             steps {
-                withEnv (["AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}", "AWS_SECRET_ACCESS_KEY_ID=${env.AWS_SECRET_ACCESS_KEY_ID}", "AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}"]) {
-                    sh 'aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 383468065570.dkr.ecr.ap-northeast-2.amazonaws.com'
-                    sh 'docker build -t repo-jenkins .'
-                    sh 'docker tag repo-jenkins:""$BUILD_ID""'
-                    sh 'docker push 383468065570.dkr.ecr.ap-northeast-2.amazonaws.com/repo-jenkins:""$BUILD_ID""'
+                script{
+                        docker.withRegistry('https://383468065570.dkr.ecr.ap-northeast-2.amazonaws.com', 'ap-northeast-2:aws-credentials') {
+                    app.push("${env.BUILD_NUMBER}")
+                    app.push("latest")
                     }
                 }
             }
         }
     }
+}
