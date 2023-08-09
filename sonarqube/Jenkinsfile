@@ -41,11 +41,6 @@ pipeline {
         }
                 }
 
-post {
-        always {
-            maskPasswords("${SONAR_LOGIN}")
-        }
-    }
         }
 
         
