@@ -26,7 +26,7 @@ pipeline {
                 script {
                     def myGradleContainer = docker.image('gradle:latest')
                     myGradleContainer.inside("-v ${GRADLE_USER_HOME}:/home/gradle/.gradle") {
-                        sh 'gradle init' && /opt/gradle/bin/gradle build'
+                        sh 'gradle init && /opt/gradle/bin/gradle build'
                     }
                 }
             }
