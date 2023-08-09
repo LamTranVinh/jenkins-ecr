@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
+        JAVA_HOME = tool(name: 'Java11', type: 'jdk11')
     }
 
     stages {
@@ -15,10 +16,10 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    def myGradleContainer = docker.image('gradle:jdk8-alpine')
+                    def myGradleContainer = docker.image('gradle:jdk11-alpine')
                     myGradleContainer.pull()
                     myGradleContainer.inside("-v ${GRADLE_USER_HOME}:/home/gradle/.gradle") {
-                        sh 'cd sonarqube && /opt/gradle/bin/gradle build --stacktrace'
+                        sh 'cd your-project-dir && /opt/gradle/bin/gradle build'
                     }
                 }
             }
@@ -28,7 +29,7 @@ pipeline {
             steps {
                 script {
                     def sonarqubeScannerHome = tool name: 'sonarqube-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'sonarLogin', maskPasswords: true)]) {
+                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'sonarLogin')]) {
                         sh """
                             ${sonarqubeScannerHome}/bin/sonar-scanner -Dsonar.host.url=http://sonarqube.local:9000 \
                             -Dsonar.login=\$SONAR_LOGIN -Dsonar.projectKey=your-project-key \
