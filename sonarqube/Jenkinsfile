@@ -17,7 +17,7 @@ pipeline {
 
         stage('prep') {
             steps {
-                git url: 'https://github.com/LamTranVinh/jenkins-ecr.git'
+                checkout scm
             }
         }
 
