@@ -18,7 +18,7 @@ pipeline {
                     def myGradleContainer = docker.image('gradle:jdk8-alpine')
                     myGradleContainer.pull()
                     myGradleContainer.inside("-v ${GRADLE_USER_HOME}:/home/gradle/.gradle") {
-                        sh 'cd sonarqube && /opt/gradle/bin/gradle build'
+                        sh 'cd sonarqube && /opt/gradle/bin/gradle build --stacktrace'
                     }
                 }
             }
