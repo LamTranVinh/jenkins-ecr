@@ -3,7 +3,10 @@ pipeline {
 
     environment {
         GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
-        JAVA_HOME = tool(name: 'Java11', type: 'jdk11')
+    }
+    tools {
+        // Define the Java 11 JDK tool with the correct name used in your Jenkins configuration
+        jdk 'Java11'
     }
 
     stages {
