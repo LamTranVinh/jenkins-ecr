@@ -1,7 +1,7 @@
 FROM jenkins/jenkins:lts
 USER root
 RUN apt-get update -qq \
-    && apt-get install -qqy apt-transport-https ca-certificates curl gnupg2 software-properties-common
+    && apt-get install -qqy apt-transport-https ca-certificates curl gnupg2 software-properties-common \
     && apt-get install -y openjdk-17-jdk \
     && apt-get install -y openjdk-17-jre
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
