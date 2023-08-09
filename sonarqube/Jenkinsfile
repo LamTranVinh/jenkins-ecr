@@ -1,48 +1,21 @@
-pipeline {
-    agent any
+node {
+    def myGradleContainer = docker.image('gradle:jdk8-alpine')
+    myGradleContainer.pull()
 
-    environment {
-        GRADLE_USER_HOME = "${HOME}/.gradle"
+    stage('prep') {
+        git url: 'https://github.com/LamTranVinh/jenkins-ecr.git'
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-        stage('Debug') {
-            steps {
-                sh 'pwd' // Print working directory (workspace path)
-            }
-        }
-        stage('Build') {
-            steps {
-                script {
-                    def myGradleContainer = docker.image('gradle:jdk8-alpine')
-                    myGradleContainer.pull()
-                    myGradleContainer.inside("-v ${GRADLE_USER_HOME}:/home/gradle/.gradle") {
-                        sh '/opt/gradle/bin/gradle build'
-                    }
-                }
-            }
-        }
-
-        stage('Sonar-Scanner') {
-                environment {
-        SONAR_LOGIN = credentials('sonarqube-token')
-                }
-            steps {
-                script {
-            def sonarqubeScannerHome = tool name: 'sonarqube-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-            sh """
-                $sonarqubeScannerHome/bin/sonar-scanner -e -Dsonar.host.url=http://sonarqube.local:9000 -Dsonar.login=\$SONAR_LOGIN -Dsonar.projectName=gs-gradle -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=complete/src/main/ -Dsonar.tests=complete/src/test/ -Dsonar.language=java -Dsonar.java.binaries=.
-            """
-        }
-                }
-
-        }
-
-        
-        }
+    stage('build') {
+      myGradleContainer.inside("-v ${env.HOME}/.gradle:/home/gradle/.gradle") {
+        sh 'cd complete && /opt/gradle/bin/gradle build'
+      }
     }
+
+    stage('sonar-scanner') {
+      def sonarqubeScannerHome = tool name: 'sonarqube-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+      withCredentials([string(credentialsId: 'sonarqube-token', variable: 'sonarLogin')]) {
+        sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://sonarqube.local:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=gs-gradle -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=complete/src/main/ -Dsonar.tests=complete/src/test/ -Dsonar.language=java -Dsonar.java.binaries=."
+      }
+    }
+}
