@@ -30,7 +30,7 @@ pipeline {
 
         stage('Sonar-Scanner') {
                 environment {
-        SONAR_LOGIN = credentials('sonarqube-web')
+        SONAR_LOGIN = credentials('sonarqube-scanner')
                 }
             steps {
                 script {
