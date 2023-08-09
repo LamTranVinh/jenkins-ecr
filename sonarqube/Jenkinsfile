@@ -7,15 +7,20 @@ node {
     }
 
     stage('build') {
-      myGradleContainer.inside("-v ${env.HOME}/.gradle:/home/gradle/.gradle") {
-        sh 'cd complete && /opt/gradle/bin/gradle build'
-      }
+        myGradleContainer.inside("-v ${env.HOME}/.gradle:/home/gradle/.gradle") {
+            sh 'cd complete && /opt/gradle/bin/gradle build'
+        }
     }
 
     stage('sonar-scanner') {
-      def sonarqubeScannerHome = tool name: 'sonarqube-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-      withCredentials([string(credentialsId: 'sonarqube-token', variable: 'sonarLogin')]) {
-        sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://sonarqube.local:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=gs-gradle -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=complete/src/main/ -Dsonar.tests=complete/src/test/ -Dsonar.language=java -Dsonar.java.binaries=."
-      }
+        def sonarqubeScannerHome = tool name: 'sonarqube-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+        withCredentials([string(credentialsId: 'sonarqube-token', variable: 'sonarLogin')]) {
+            sh """
+                ${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://sonarqube.local:9000 \
+                -Dsonar.login=${sonarLogin} -Dsonar.projectName=gs-gradle -Dsonar.projectVersion=${env.BUILD_NUMBER} \
+                -Dsonar.projectKey=GS -Dsonar.sources=complete/src/main/ -Dsonar.tests=complete/src/test/ \
+                -Dsonar.language=java -Dsonar.java.binaries=.
+            """
+        }
     }
 }
