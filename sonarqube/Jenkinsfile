@@ -2,11 +2,9 @@ node {
     def myGradleContainer = docker.image('gradle:jdk8-alpine')
     myGradleContainer.pull()
 
-    stage('Checkout') {
-        steps {
-            checkout scm
-            }
-        }
+     stage('prep') {
+        git url: 'https://github.com/LamTranVinh/jenkins-ecr.git'
+    }
 
     stage('build') {
       myGradleContainer.inside("-v ${env.HOME}/.gradle:/home/gradle/.gradle") {
