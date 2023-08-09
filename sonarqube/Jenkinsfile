@@ -22,7 +22,7 @@ pipeline {
                     def myGradleContainer = docker.image('gradle:jdk11-alpine')
                     myGradleContainer.pull()
                     myGradleContainer.inside("-v ${GRADLE_USER_HOME}:/home/gradle/.gradle") {
-                        sh 'cd sonarqube && /opt/gradle/bin/gradle build'
+                        sh 'cd sonarqube && gradle init && /opt/gradle/bin/gradle build'
                     }
                 }
             }
