@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     def sonarqubeScannerHome = tool name: 'sonarqube-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                    withCredentials([string(credentialsId: 'sonarqube-token', 'sonarLogin')]) {
+                    withCredentials([string(credentialsId: 'sonarqube-token',  variable: 'sonarLogin')]) {
                         sh """
                             ${sonarqubeScannerHome}/bin/sonar-scanner -Dsonar.host.url=http://sonarqube.local:9000 \
                             -Dsonar.login=\$SONAR_LOGIN -Dsonar.projectKey=your-project-key \
