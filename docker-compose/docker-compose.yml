@@ -1,15 +1,15 @@
 version: '3'
 services:
-  jenkins:
-    image: jenkins:sock
-    ports:
-      - "8080:8080"
-      - "50000:50000"
-    networks:
-      - jenkins
-    volumes:
-      - /var/jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
+  # jenkins:
+  #   image: jenkins:sock
+  #   ports:
+  #     - "8080:8080"
+  #     - "50000:50000"
+  #   networks:
+  #     - jenkins
+  #   volumes:
+  #     - /var/jenkins_home:/var/jenkins_home
+  #     - /var/run/docker.sock:/var/run/docker.sock
   postgres:
     image: postgres:9.6
     networks:
@@ -20,7 +20,7 @@ services:
     volumes:
       - /var/postgres-data:/var/lib/postgresql/data
   sonarqube:
-    image: sonarqube:9.9.1.69595
+    image: sonarqube:latest
     ports:
       - "9000:9000"
       - "9092:9092"
