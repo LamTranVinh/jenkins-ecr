@@ -1,21 +1,43 @@
-node {
-    def myGradleContainer = docker.image('gradle:jdk8-alpine')
-    myGradleContainer.pull()
+pipeline {
+    agent any
 
-    stage('prep') {
-        checkout scm
+    environment {
+        GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
     }
 
-    stage('build') {
-      myGradleContainer.inside("-v ${env.HOME}/.gradle:/home/gradle/.gradle") {
-        sh 'cd complete && /opt/gradle/bin/gradle build'
-      }
-    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
-    stage('sonarqube-scanner') {
-      def sonarqubeScannerHome = tool name: 'sonarqube-scaner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-      withCredentials([string(credentialsId: 'sonarqube-token', variable: 'sonarLogin')]) {
-        sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://sonarqube.local:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=gs-gradle -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=complete/src/main/ -Dsonar.tests=complete/src/test/ -Dsonar.language=java -Dsonar.java.binaries=."
-      }
+        stage('Build') {
+            steps {
+                script {
+                    def myGradleContainer = docker.image('gradle:jdk8-alpine')
+                    myGradleContainer.pull()
+                    myGradleContainer.inside("-v ${GRADLE_USER_HOME}:/home/gradle/.gradle") {
+                        sh 'cd sonarqube && /opt/gradle/bin/gradle build'
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def sonarqubeScannerHome = tool name: 'sonarqube-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'sonarLogin')]) {
+                        sh """
+                            ${sonarqubeScannerHome}/bin/sonar-scanner -Dsonar.host.url=http://sonarqube.local:9000 \
+                            -Dsonar.login=\$SONAR_LOGIN -Dsonar.projectKey=your-project-key \
+                            -Dsonar.projectName=YourProjectName -Dsonar.sources=your-source-dir \
+                            -Dsonar.tests=your-test-dir -Dsonar.language=java
+                        """
+                    }
+                }
+            }
+        }
     }
 }
