@@ -1,43 +1,42 @@
 pipeline {
     agent any
-
+    
     environment {
         GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
     }
-    tools {
-        // Define the Java 11 JDK tool with the correct name used in your Jenkins configuration
-        jdk 'Java11'
-    }
-
+    
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-
+        
         stage('Build') {
             steps {
                 script {
-                    def myGradleContainer = docker.image('gradle:jdk11-alpine')
-                    myGradleContainer.pull()
-                    myGradleContainer.inside("-v ${GRADLE_USER_HOME}:/home/gradle/.gradle") {
-                        sh 'cd sonarqube && gradle init && /opt/gradle/bin/gradle build'
+                    def gradleContainer = docker.image('gradle:jdk17')
+                    gradleContainer.pull()
+                    
+                    // Run build using Gradle
+                    gradleContainer.inside("-v ${GRADLE_USER_HOME}:/home/gradle/.gradle") {
+                        sh "cd sonarqube && ./gradlew build"
                     }
                 }
             }
         }
-
+        
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    def sonarqubeScannerHome = tool name: 'sonarqube-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    def scannerHome = tool name: 'sonarqube-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    
                     withCredentials([string(credentialsId: 'sonarqube-token', variable: 'sonarLogin')]) {
                         sh """
-                            ${sonarqubeScannerHome}/bin/sonar-scanner -Dsonar.host.url=http://sonarqube.local:9000 \
+                            ${scannerHome}/bin/sonar-scanner -Dsonar.host.url=http://sonarqube.local:9000 \
                             -Dsonar.login=\$SONAR_LOGIN -Dsonar.projectKey=your-project-key \
-                            -Dsonar.projectName=YourProjectName -Dsonar.sources=your-source-dir \
-                            -Dsonar.tests=your-test-dir -Dsonar.language=java
+                            -Dsonar.projectName=YourProjectName -Dsonar.sources=src/main/java \
+                            -Dsonar.tests=src/test/java -Dsonar.language=java
                         """
                     }
                 }
