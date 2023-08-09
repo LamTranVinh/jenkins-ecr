@@ -1,9 +1,10 @@
 version: '2'
 services:
   jenkins:
-    image: jenkins:sock
     build:
-      context: docker
+      context: /docker
+      dockerfile: Dockerfile
+    image: jenkins:sock
     ports:
       - "8080:8080"
       - "50000:50000"
