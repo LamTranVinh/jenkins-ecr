@@ -9,7 +9,7 @@ pipeline {
         stage('Setup') {
             steps {
                 script {
-                    def myGradleContainer = docker.image('gradle:jdk8-alpine')
+                    def myGradleContainer = docker.image('gradle:latest')
                     myGradleContainer.pull()
                 }
             }
@@ -24,7 +24,7 @@ pipeline {
         stage('build') {
             steps {
                 script {
-                    def myGradleContainer = docker.image('gradle:jdk8-alpine')
+                    def myGradleContainer = docker.image('gradle:latest')
                     myGradleContainer.inside("-v ${GRADLE_USER_HOME}:/home/gradle/.gradle") {
                         sh 'cd complete && /opt/gradle/bin/gradle build'
                     }
