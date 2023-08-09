@@ -2,7 +2,6 @@ version: '3'
 services:
   jenkins:
     image: jenkins:sock
-    build: ./docker/Dockerfile
     ports:
       - "8080:8080"
       - "50000:50000"
